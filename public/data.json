@@ -1,0 +1,10 @@
+{"month":"2026-11","sample":true,"movies":[
+{"title":"Sample Action Hero","year":"2026","status":"now","genres":["Action","Thriller"],"poster":null,"imdb":7.4,"rt":88},
+{"title":"Sample Laugh Riot","year":"2026","status":"now","genres":["Comedy"],"poster":null,"imdb":6.8,"rt":79},
+{"title":"Sample Family Story","year":"2026","status":"now","genres":["Drama","Family"],"poster":null,"imdb":7.9,"rt":93},
+{"title":"Sample Space Saga","year":"2026","status":"now","genres":["Science Fiction","Action"],"poster":null,"imdb":7.1,"rt":null},
+{"title":"Sample Night Terror","year":"2026","status":"now","genres":["Horror"],"poster":null,"imdb":6.2,"rt":71},
+{"title":"Sample Courtroom","year":"2026","status":"soon","genres":["Drama","Crime"],"poster":null,"imdb":null,"rt":null},
+{"title":"Sample Road Trip","year":"2026","status":"soon","genres":["Comedy","Adventure"],"poster":null,"imdb":null,"rt":null},
+{"title":"Sample Heist","year":"2026","status":"soon","genres":["Action","Crime"],"poster":null,"imdb":null,"rt":null}
+]}
