@@ -57,7 +57,7 @@ for (let i = 0; i < titles.length; i += 8) {
 }
 
 const movies = [...byId.values()].map((m) => ({
-  title: m.title, year: m.d.slice(0, 4), status: m.d <= today ? 'now' : 'soon', genres: m.genres,
+  title: m.title, year: m.d.slice(0, 4), date: m.d, status: m.d <= today ? 'now' : 'soon', genres: m.genres,
   poster: posters.get(m.wp) || null, imdb: ratings.get(m.id) ?? null, rt: null, imdbId: m.id, rtId: m.rtId,
 }));
 
