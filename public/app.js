@@ -24,7 +24,6 @@ function on(id,fn){document.getElementById(id).addEventListener('click',fn)}
 on('status',function(e){var b=e.target.closest('button');if(!b)return;st=b.dataset.s;[].forEach.call(this.children,function(x){x.classList.toggle('on',x===b)});render()});
 on('tabs',function(e){var b=e.target.closest('button');if(!b)return;g=b.dataset.g;more.classList.remove('on');[].forEach.call(this.querySelectorAll('button'),function(x){x.classList.toggle('on',x===b)});more.value='';render()});
 more.onchange=function(){g=more.value||'All';[].forEach.call(document.querySelectorAll('#tabs button'),function(x){x.classList.toggle('on',!more.value&&x.dataset.g==='All')});more.classList.toggle('on',!!more.value);render()};
-document.addEventListener('click',function(e){var a=e.target.closest('.s a');if(!a)return;e.preventDefault();if(!window.open(a.href,'_blank','noopener'))location.href=a.href});
 list.onclick=function(e){
   var b=e.target.closest('.cp');if(!b)return;
   var m=list._ms[b.dataset.i];
