@@ -11,9 +11,10 @@ function render(){
   ms.sort(function(a,b){return score(b)-score(a)});
   var h='';
   ms.forEach(function(m,i){
-    h+='<div class="c"><span class="rk">'+(i+1)+'</span><'+(m.poster?'img src="'+m.poster+'" width="300" height="450" alt="" '+(i>5?'loading="lazy" ':'')+'decoding="async"':'div class="ph"></div')+'>'
-    +'<div class="i"><div class="t"></div><div class="s"><a href="'+(m.imdbId?'https://www.imdb.com/title/'+m.imdbId+'/':'https://www.imdb.com/find/?s=tt&q='+encodeURIComponent(m.title+' '+(m.year||'')))+'" target="_blank" rel="noopener">IMDb '+(m.imdb!=null?'★ '+m.imdb.toFixed(1):'–')+'</a><a href="https://www.rottentomatoes.com/'+(m.rtId||'search?search='+encodeURIComponent(m.title))+'" target="_blank" rel="noopener">RT'+(m.rt!=null?' '+m.rt+'%':' ↗')+'</a></div>'
-    +'<button class="cp" type="button" data-i="'+i+'">Copy title</button></div></div>';
+    var gq='https://www.google.com/search?q='+encodeURIComponent(m.title+' '+(m.year||'')+' movie');
+    h+='<div class="c"><span class="rk">'+(i+1)+'</span><a class="th" href="'+gq+'" target="_blank" rel="noopener" aria-label="Search Google"><'+(m.poster?'img src="'+m.poster+'" width="300" height="450" alt="" '+(i>5?'loading="lazy" ':'')+'decoding="async"':'div class="ph"></div')+'></a>'
+    +'<div class="i"><a class="t" href="'+gq+'" target="_blank" rel="noopener"></a><div class="s"><a href="'+(m.imdbId?'https://www.imdb.com/title/'+m.imdbId+'/':'https://www.imdb.com/find/?s=tt&q='+encodeURIComponent(m.title+' '+(m.year||'')))+'" target="_blank" rel="noopener">IMDb '+(m.imdb!=null?'★ '+m.imdb.toFixed(1):'–')+'</a><a href="https://www.rottentomatoes.com/'+(m.rtId||'search?search='+encodeURIComponent(m.title))+'" target="_blank" rel="noopener">RT'+(m.rt!=null?' '+m.rt+'%':' ↗')+'</a></div>'
+    +'<a class="cp" href="https://www.amctheatres.com/search?q='+encodeURIComponent(m.title)+'" target="_blank" rel="noopener">AMC</a></div></div>';
   });
   list.innerHTML=h||'<p class="meta">No movies.</p>';
   var t=list.querySelectorAll('.t');ms.forEach(function(m,i){t[i].textContent=m.title+(m.year?' ('+m.year+')':'')+(m.status==='soon'&&m.date?' · '+new Date(m.date+'T00:00').toLocaleDateString(undefined,{month:'short',day:'numeric'}):'')});
@@ -23,13 +24,6 @@ function on(id,fn){document.getElementById(id).addEventListener('click',fn)}
 on('status',function(e){var b=e.target.closest('button');if(!b)return;st=b.dataset.s;[].forEach.call(this.children,function(x){x.classList.toggle('on',x===b)});render()});
 on('tabs',function(e){var b=e.target.closest('button');if(!b)return;g=b.dataset.g;more.classList.remove('on');[].forEach.call(this.querySelectorAll('button'),function(x){x.classList.toggle('on',x===b)});more.value='';render()});
 more.onchange=function(){g=more.value||'All';[].forEach.call(document.querySelectorAll('#tabs button'),function(x){x.classList.toggle('on',!more.value&&x.dataset.g==='All')});more.classList.toggle('on',!!more.value);render()};
-list.onclick=function(e){
-  var b=e.target.closest('.cp');if(!b)return;
-  var m=list._ms[b.dataset.i];
-  var done=function(){b.textContent='Copied!';b.classList.add('ok');setTimeout(function(){b.textContent='Copy title';b.classList.remove('ok')},1200)};
-  if(navigator.clipboard)navigator.clipboard.writeText(m.title).then(done);
-  else{var a=document.createElement('textarea');a.value=m.title;document.body.appendChild(a);a.select();document.execCommand('copy');a.remove();done()}
-};
 fetch('data.json').then(function(r){return r.json()}).then(function(d){
   D=d;
   var set={};d.movies.forEach(function(m){m.genres.forEach(function(x){if(MAIN.indexOf(x)<0)set[x]=1})});
