@@ -13,7 +13,7 @@ function render(){
   var h='';
   ms.forEach(function(m,i){
     h+='<div class="c"><'+(m.poster?'img src="'+m.poster+'" width="300" height="450" alt="" '+(i>5?'loading="lazy" ':'')+'decoding="async"':'div class="ph"')+'>'
-    +'<div class="i"><div class="t"></div><div class="s"><span>IMDb '+(m.imdb!=null?m.imdb.toFixed(1):'–')+'</span><span>RT '+(m.rt!=null?m.rt+'%':'–')+'</span></div>'
+    +'<div class="i"><div class="t"></div><div class="s"><a href="'+(m.imdbId?'https://www.imdb.com/title/'+m.imdbId+'/':'https://www.imdb.com/find/?s=tt&q='+encodeURIComponent(m.title+' '+(m.year||'')))+'" target="_blank" rel="noopener">IMDb '+(m.imdb!=null?m.imdb.toFixed(1):'–')+'</a><a href="https://www.rottentomatoes.com/search?search='+encodeURIComponent(m.title)+'" target="_blank" rel="noopener">RT '+(m.rt!=null?m.rt+'%':'–')+'</a></div>'
     +'<button class="cp" type="button" data-i="'+i+'">Copy title</button></div></div>';
   });
   list.innerHTML=h||'<p class="meta">No movies.</p>';

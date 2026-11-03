@@ -47,7 +47,7 @@ for (const m of all) {
     status: m.status,
     genres: m.genre_ids.map((i) => genres[i]).filter(Boolean),
     poster: m.poster_path ? `https://image.tmdb.org/t/p/w342${m.poster_path}` : null,
-    imdb, rt,
+    imdb, rt, imdbId: ext.imdb_id || null,
   });
 }
 mkdirSync('public', { recursive: true });
