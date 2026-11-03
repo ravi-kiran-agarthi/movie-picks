@@ -35,7 +35,7 @@ fetch('data.json').then(function(r){return r.json()}).then(function(d){
   D=d;
   var set={};d.movies.forEach(function(m){m.genres.forEach(function(x){if(MAIN.indexOf(x)<0)set[x]=1})});
   Object.keys(set).sort().forEach(function(x){var o=document.createElement('option');o.value=o.textContent=x;more.appendChild(o)});
-  meta.textContent=d.month+' · English · sorted by IMDb rating'+(d.sample?' · sample data':'');
+  meta.textContent=d.month.slice(0,4)+' English movies · sorted by IMDb rating'+(d.sample?' · sample data':'');
   render();
 });
 })();
