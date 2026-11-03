@@ -1,55 +1,66 @@
 import { writeFileSync, mkdirSync } from 'node:fs';
+import { gunzipSync } from 'node:zlib';
 
-const TMDB = process.env.TMDB_API_KEY, OMDB = process.env.OMDB_API_KEY;
-if (!TMDB || !OMDB) { console.log('Missing API keys; keeping existing public/data.json'); process.exit(0); }
-
+const UA = { 'User-Agent': 'movie-picks/1.0 (github.com/ravi-kiran-agarthi/movie-picks)' };
+const day = (d) => d.toISOString().slice(0, 10);
 const now = new Date();
-const ym = now.toISOString().slice(0, 7);
-const start = `${ym}-01`;
-const end = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0)).toISOString().slice(0, 10);
+const today = day(now);
+const from = day(new Date(now - 30 * 864e5));
+const to = day(new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 2, 1)));
 
-const j = async (u) => { const r = await fetch(u); if (!r.ok) throw new Error(u.replace(/api_key=\w+/, '') + ' ' + r.status); return r.json(); };
-const q = (o) => new URLSearchParams({ api_key: TMDB, language: 'en-US', region: 'US', with_original_language: 'en', with_release_type: '2|3', ...o });
+const rq = `SELECT ?l ?imdb ?rt ?wp (MIN(?d) AS ?date) (GROUP_CONCAT(DISTINCT ?gl;separator="|") AS ?g) WHERE {
+ ?f wdt:P31 wd:Q11424; wdt:P364 wd:Q1860; wdt:P345 ?imdb; wdt:P577 ?d.
+ FILTER(?d>="${from}"^^xsd:dateTime && ?d<"${to}"^^xsd:dateTime)
+ OPTIONAL{?f wdt:P1258 ?rt}
+ OPTIONAL{?f wdt:P136 ?ge. ?ge rdfs:label ?gl FILTER(lang(?gl)="en")}
+ OPTIONAL{?wp schema:about ?f; schema:isPartOf <https://en.wikipedia.org/>}
+ ?f rdfs:label ?l FILTER(lang(?l)="en")
+} GROUP BY ?l ?imdb ?rt ?wp LIMIT 1000`;
 
-const genres = Object.fromEntries((await j(`https://api.themoviedb.org/3/genre/movie/list?api_key=${TMDB}`)).genres.map((g) => [g.id, g.name]));
+const w = await fetch('https://query.wikidata.org/sparql?' + new URLSearchParams({ query: rq }), { headers: { ...UA, Accept: 'application/json' } });
+if (!w.ok) throw new Error('wikidata ' + w.status);
+const rows = (await w.json()).results.bindings;
 
-async function discover(status, o) {
-  const out = [];
-  for (let p = 1; p <= 3; p++) {
-    const d = await j('https://api.themoviedb.org/3/discover/movie?' + q({ ...o, page: p, sort_by: 'popularity.desc' }));
-    out.push(...d.results.map((m) => ({ ...m, status })));
-    if (p >= d.total_pages) break;
-  }
-  return out;
+const ratings = new Map();
+const gz = Buffer.from(await (await fetch('https://datasets.imdbws.com/title.ratings.tsv.gz', { headers: UA })).arrayBuffer());
+for (const line of gunzipSync(gz).toString().split('\n')) {
+  const [id, r] = line.split('\t');
+  if (id?.startsWith('tt')) ratings.set(id, parseFloat(r));
 }
 
-const today = now.toISOString().slice(0, 10);
-const nowList = await discover('now', { 'primary_release_date.gte': new Date(now - 60 * 864e5).toISOString().slice(0, 10), 'primary_release_date.lte': today });
-const soonList = await discover('soon', { 'primary_release_date.gte': today, 'primary_release_date.lte': end });
-const seen = new Set();
-const all = [...nowList, ...soonList].filter((m) => !seen.has(m.id) && seen.add(m.id));
+const GENRES = [['Comedy', /comedy/], ['Drama', /drama/], ['Action', /action/], ['Animation', /animat/], ['Horror', /horror/], ['Thriller', /thriller|crime|mystery/], ['Sci-Fi', /science fiction|fantasy/], ['Romance', /romance/], ['Family', /family|children/], ['Adventure', /adventure/], ['Documentary', /documentary/], ['Biography', /biograph/], ['Musical', /music/]];
+const genresOf = (s) => GENRES.filter(([, re]) => re.test(s.toLowerCase())).map(([n]) => n);
 
-const movies = [];
-for (const m of all) {
-  const ext = await j(`https://api.themoviedb.org/3/movie/${m.id}/external_ids?api_key=${TMDB}`);
-  let imdb = null, rt = null;
-  if (ext.imdb_id) {
-    try {
-      const o = await j(`https://www.omdbapi.com/?apikey=${OMDB}&i=${ext.imdb_id}`);
-      if (o.imdbRating && o.imdbRating !== 'N/A') imdb = parseFloat(o.imdbRating);
-      const r = (o.Ratings || []).find((x) => x.Source === 'Rotten Tomatoes');
-      if (r) rt = parseInt(r.Value, 10);
-    } catch {}
-  }
-  movies.push({
-    title: m.title,
-    year: (m.release_date || '').slice(0, 4),
-    status: m.status,
-    genres: m.genre_ids.map((i) => genres[i]).filter(Boolean),
-    poster: m.poster_path ? `https://image.tmdb.org/t/p/w342${m.poster_path}` : null,
-    imdb, rt, imdbId: ext.imdb_id || null,
+const byId = new Map();
+for (const r of rows) {
+  const id = r.imdb.value;
+  if (byId.has(id)) continue;
+  byId.set(id, {
+    id, d: r.date.value.slice(0, 10), title: r.l.value,
+    genres: genresOf(r.g.value),
+    rtId: r.rt?.value || null,
+    wp: r.wp ? decodeURIComponent(r.wp.value.split('/wiki/')[1]).replace(/_/g, ' ') : null,
   });
 }
+
+// Poster thumbnails from English Wikipedia page summaries
+const posters = new Map();
+const titles = [...byId.values()].map((m) => m.wp).filter(Boolean);
+for (let i = 0; i < titles.length; i += 8) {
+  await Promise.all(titles.slice(i, i + 8).map(async (t) => {
+    try {
+      const r = await fetch('https://en.wikipedia.org/api/rest_v1/page/summary/' + encodeURIComponent(t.replace(/ /g, '_')), { headers: UA });
+      const src = (await r.json()).thumbnail?.source;
+      if (src) posters.set(t, src.split('?')[0]);
+    } catch {}
+  }));
+}
+
+const movies = [...byId.values()].map((m) => ({
+  title: m.title, year: m.d.slice(0, 4), status: m.d <= today ? 'now' : 'soon', genres: m.genres,
+  poster: posters.get(m.wp) || null, imdb: ratings.get(m.id) ?? null, rt: null, imdbId: m.id, rtId: m.rtId,
+}));
+
 mkdirSync('public', { recursive: true });
-writeFileSync('public/data.json', JSON.stringify({ month: ym, movies }));
-console.log(`Wrote ${movies.length} movies`);
+writeFileSync('public/data.json', JSON.stringify({ month: day(now).slice(0, 7), movies }));
+console.log(`Wrote ${movies.length} movies, ${movies.filter((m) => m.poster).length} posters, ${movies.filter((m) => m.imdb).length} rated`);
