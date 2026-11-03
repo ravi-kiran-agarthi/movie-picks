@@ -18,3 +18,4 @@ main{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:
 .s{display:flex;gap:8px;font-size:.8rem;color:var(--mut);margin:4px 0 8px}
 .cp{width:100%;font-size:.8rem}
 .cp.ok{background:var(--acc);color:#fff}
+.s a{color:var(--acc);text-decoration:none}.s a:hover{text-decoration:underline}
