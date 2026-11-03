@@ -13,7 +13,7 @@
 <link rel="preload" href="data.json" as="fetch" crossorigin>
 </head>
 <body>
-<header>
+<div class="top"><div class="w"><header>
   <h1>Movie Picks</h1>
   <button id="theme" type="button" aria-label="Change theme">System</button>
 </header>
@@ -29,9 +29,9 @@
     <button data-g="Action">Action</button>
     <select id="more" aria-label="More genres"><option value="">More…</option></select>
   </div>
-</nav>
-<p id="meta" class="meta"></p>
-<main id="list"></main>
+</nav></div></div>
+<div class="w"><p id="meta" class="meta"></p>
+<main id="list"></main></div>
 <script src="app.js" defer></script>
 </body>
 </html>
