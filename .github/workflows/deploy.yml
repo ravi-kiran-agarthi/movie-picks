@@ -27,6 +27,7 @@ jobs:
         env:
           TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
           OMDB_API_KEY: ${{ secrets.OMDB_API_KEY }}
+      - run: sed -i "s/\(style.css\|app.js\)\([\"']\)/\1?v=${GITHUB_SHA::7}\2/g" public/index.html
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
