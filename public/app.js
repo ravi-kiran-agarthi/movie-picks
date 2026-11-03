@@ -1,8 +1,7 @@
 (function(){
-var root=document.documentElement,tb=document.getElementById('theme'),modes=['system','light','dark'];
-function setT(t){root.dataset.theme=t;localStorage.setItem('theme',t);tb.textContent=t[0].toUpperCase()+t.slice(1)}
-setT(root.dataset.theme||'system');
-tb.onclick=function(){setT(modes[(modes.indexOf(root.dataset.theme)+1)%3])};
+var th=document.getElementById('theme');
+th.value=localStorage.getItem('theme')||'system';
+th.onchange=function(){var v=th.value,r=document.documentElement;if(v==='system'){localStorage.removeItem('theme');delete r.dataset.theme}else{localStorage.setItem('theme',v);r.dataset.theme=v}};
 
 var D,st='now',g='All',list=document.getElementById('list'),more=document.getElementById('more'),meta=document.getElementById('meta');
 var MAIN=['Comedy','Drama','Action'];
