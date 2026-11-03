@@ -13,7 +13,7 @@ function render(){
   var h='';
   ms.forEach(function(m,i){
     h+='<div class="c"><'+(m.poster?'img src="'+m.poster+'" width="300" height="450" alt="" '+(i>5?'loading="lazy" ':'')+'decoding="async"':'div class="ph"')+'>'
-    +'<div class="i"><div class="t"></div><div class="s"><a href="'+(m.imdbId?'https://www.imdb.com/title/'+m.imdbId+'/':'https://www.imdb.com/find/?s=tt&q='+encodeURIComponent(m.title+' '+(m.year||'')))+'" target="_blank" rel="noopener">IMDb '+(m.imdb!=null?m.imdb.toFixed(1):'–')+'</a><a href="https://www.rottentomatoes.com/search?search='+encodeURIComponent(m.title)+'" target="_blank" rel="noopener">RT '+(m.rt!=null?m.rt+'%':'–')+'</a></div>'
+    +'<div class="i"><div class="t"></div><div class="s"><a href="'+(m.imdbId?'https://www.imdb.com/title/'+m.imdbId+'/':'https://www.imdb.com/find/?s=tt&q='+encodeURIComponent(m.title+' '+(m.year||'')))+'" target="_blank" rel="noopener">IMDb '+(m.imdb!=null?m.imdb.toFixed(1):'–')+'</a><a href="https://www.rottentomatoes.com/'+(m.rtId||'search?search='+encodeURIComponent(m.title))+'" target="_blank" rel="noopener">Rotten Tomatoes'+(m.rt!=null?' '+m.rt+'%':' ↗')+'</a></div>'
     +'<button class="cp" type="button" data-i="'+i+'">Copy title</button></div></div>';
   });
   list.innerHTML=h||'<p class="meta">No movies.</p>';
@@ -35,7 +35,7 @@ fetch('data.json').then(function(r){return r.json()}).then(function(d){
   D=d;
   var set={};d.movies.forEach(function(m){m.genres.forEach(function(x){if(MAIN.indexOf(x)<0)set[x]=1})});
   Object.keys(set).sort().forEach(function(x){var o=document.createElement('option');o.value=o.textContent=x;more.appendChild(o)});
-  meta.textContent=d.month+' · English · sorted by avg of IMDb & Rotten Tomatoes'+(d.sample?' · sample data':'');
+  meta.textContent=d.month+' · English · sorted by IMDb rating'+(d.sample?' · sample data':'');
   render();
 });
 })();
